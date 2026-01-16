@@ -49,17 +49,17 @@ const Sidebar = ({ gradeLevel, setGradeLevel, citationStyle, setCitationStyle, m
   return (
     <>
       {/* Mobile Menu Button - Fixed Position */}
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
-        aria-label="Toggle menu"
-      >
-        {mobileOpen ? (
-          <X className="w-6 h-6 dark:text-white" />
-        ) : (
-          <Menu className="w-6 h-6 dark:text-white" />
-        )}
-      </button>
+<button
+  onClick={() => setMobileOpen(!mobileOpen)}
+  className="lg:hidden fixed top-4 right-4 z-50 p-3 bg-blue-600 text-white rounded-lg shadow-lg"
+  aria-label="Toggle menu"
+>
+  {mobileOpen ? (
+    <X className="w-6 h-6" />
+  ) : (
+    <Menu className="w-6 h-6" />
+  )}
+</button>
 
       {/* Sidebar */}
       <div className={`
