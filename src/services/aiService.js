@@ -1,4 +1,3 @@
-import { API_CONFIG } from '../utils/constants';
 import { generateSystemPrompt } from '../utils/prompts';
 
 export const sendMessage = async (messages, gradeLevel, citationStyle) => {
