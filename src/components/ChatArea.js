@@ -2,29 +2,20 @@ import React, { useState } from 'react';
 import { GRADE_LEVELS } from '../utils/constants';
 import MessageList from './MessageList';
 import InputArea from './InputArea';
-import { sendMessage, sendMessageWithImage } from '../services/aiService';
+import { sendMessage } from '../services/aiService';
 
 const ChatArea = ({ messages, setMessages, gradeLevel, citationStyle }) => {
   const [loading, setLoading] = useState(false);
 
-  const handleSendMessage = async (input, imageBase64 = null) => {
+  const handleSendMessage = async (input) => {
     if (!input.trim() || loading) return;
 
-    const userMessage = { 
-      role: 'user', 
-      content: input,
-      image: imageBase64 
-    };
+    const userMessage = { role: 'user', content: input };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setLoading(true);
 
-    let result;
-    if (imageBase64) {
-      result = await sendMessageWithImage(updatedMessages, gradeLevel, citationStyle, imageBase64);
-    } else {
-      result = await sendMessage(updatedMessages, gradeLevel, citationStyle);
-    }
+    const result = await sendMessage(updatedMessages, gradeLevel, citationStyle);
 
     if (result.success) {
       setMessages([...updatedMessages, {
@@ -54,7 +45,7 @@ const ChatArea = ({ messages, setMessages, gradeLevel, citationStyle }) => {
           <div>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Research Chat</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Ask questions, upload images, use voice input
+              Ask questions, use voice input, analyze PDFs
             </p>
           </div>
           <div className="flex gap-2">

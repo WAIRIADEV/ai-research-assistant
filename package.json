@@ -1,7 +1,7 @@
 {
   "name": "ai-research-assistant",
   "version": "3.0.0",
-  "description": "AI-powered research assistant with DeepSeek AI, markdown rendering, voice input/output, and image analysis",
+  "description": "AI-powered research assistant with text chat, voice features, PDF viewer, and markdown rendering",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
@@ -13,8 +13,7 @@
     "jspdf": "^2.5.1",
     "react-markdown": "^9.0.1",
     "remark-gfm": "^4.0.0",
-    "react-syntax-highlighter": "^15.5.0",
-    "react-dropzone": "^14.2.3"
+    "react-syntax-highlighter": "^15.5.0"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.1",
@@ -23,7 +22,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

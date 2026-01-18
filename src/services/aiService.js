@@ -8,12 +8,10 @@ export const sendMessage = async (messages, gradeLevel, citationStyle) => {
 
     const formattedMessages = [
       { role: 'system', content: systemPrompt },
-      ...messages
-        .filter(msg => !msg.image)
-        .map(msg => ({
-          role: msg.role === 'assistant' ? 'assistant' : 'user',
-          content: msg.content
-        }))
+      ...messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content
+      }))
     ];
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -42,55 +40,6 @@ export const sendMessage = async (messages, gradeLevel, citationStyle) => {
     };
   } catch (error) {
     console.error('AI Service Error:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-};
-
-export const sendMessageWithImage = async (messages, gradeLevel, citationStyle, imageBase64) => {
-  try {
-    const systemPrompt = generateSystemPrompt(gradeLevel, citationStyle) + 
-      "\n\nYou are analyzing an image to help a student. Provide detailed, educational explanations.";
-    
-    const latestMessage = messages[messages.length - 1];
-
-    console.log('🖼️ Sending image to backend for analysis...');
-
-    // Call our serverless function (no CORS issues!)
-    const apiUrl = window.location.hostname === 'localhost'
-      ? 'http://localhost:3000/api/analyze-image'  // Local development
-      : '/api/analyze-image';  // Production
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        imageBase64,
-        question: latestMessage.content,
-        systemPrompt
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Backend error:', data);
-      throw new Error(data.error || 'Backend error');
-    }
-
-    console.log('✅ Image analysis complete!');
-
-    return {
-      success: true,
-      content: `**📸 Image Analysis Results**\n\n${data.content}\n\n---\n\n*Powered by Replicate LLaVA (~$0.001 per image)*`
-    };
-
-  } catch (error) {
-    console.error('❌ Image analysis error:', error);
     return {
       success: false,
       error: error.message

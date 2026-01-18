@@ -23,7 +23,7 @@ const MessageList = ({ messages, loading }) => {
             Ready to help with your research!
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-8">
-            Ask questions, upload images, or use voice input for help with any topic.
+            Ask questions about any topic, use voice input, or upload PDFs for analysis.
           </p>
           
           <div className="space-y-2">
@@ -49,19 +49,7 @@ const MessageList = ({ messages, loading }) => {
           key={idx}
           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
-          {msg.image && (
-            <div className="max-w-3xl">
-              <img
-                src={msg.image}
-                alt="Uploaded"
-                className="max-w-sm rounded-lg border-2 border-blue-500 mb-2"
-              />
-              <MarkdownMessage content={msg.content} isUser={msg.role === 'user'} />
-            </div>
-          )}
-          {!msg.image && (
-            <MarkdownMessage content={msg.content} isUser={msg.role === 'user'} />
-          )}
+          <MarkdownMessage content={msg.content} isUser={msg.role === 'user'} />
         </div>
       ))}
 
