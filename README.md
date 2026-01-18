@@ -1,64 +1,66 @@
-# AI Research Assistant
+# AI Research Assistant v3.0
 
-An AI-powered research assistant that helps students complete school projects faster and more accurately.
+An AI-powered research assistant powered by DeepSeek AI with markdown rendering, voice input/output, PDF analysis, and image understanding.
 
 ## Features
 
-- 🎓 Grade-level adaptive responses (Elementary to College)
+- 🤖 DeepSeek AI (affordable, high-quality responses)
+- 📝 Markdown rendering with code highlighting
+- 🎤 Voice input and output
+- 🖼️ Image upload and analysis
+- 📄 PDF viewer and text extraction
+- 📥 Export to PDF, Text, Markdown
+- 🌙 Dark mode
+- 📱 Mobile responsive
+- 🎓 Grade-level adaptive (Elementary to College)
 - 📚 Multiple citation styles (APA, MLA, Chicago)
-- 💬 Chat-based interface with context memory
-- 📄 Export to multiple formats
-- 🎯 Academic integrity guardrails
-- 🔍 Source transparency
 
-## Setup Instructions
+## Setup
 
 ### 1. Install Dependencies
-
 ```bash
 npm install
 ```
 
-### 2. Configure Environment Variables
+### 2. Get DeepSeek API Key
+1. Go to https://platform.deepseek.com/
+2. Sign up and create an API key
+3. Copy your API key
 
-Create a `.env.local` file in the root directory:
-
+### 3. Configure Environment
+Create `.env.local` in the root directory:
 ```env
-REACT_APP_ANTHROPIC_API_KEY=your_api_key_here
+REACT_APP_DEEPSEEK_API_KEY=sk-your-key-here
 ```
 
-**Important:** Never commit your API key to version control!
-
-### 3. Start Development Server
-
+### 4. Start Development Server
 ```bash
 npm start
 ```
 
-The app will open at `http://localhost:3000`
-
-## Project Structure
-
-```
-src/
-├── components/      # React components
-├── services/        # API and external services
-├── utils/          # Helper functions and constants
-└── styles/         # CSS and styling
-```
-
-## Build for Production
-
+## Deployment
 ```bash
 npm run build
+vercel --prod
 ```
 
-## Technologies Used
+## Cost Estimate
+
+DeepSeek pricing:
+- ~$0.14 per 1M input tokens
+- ~$0.28 per 1M output tokens
+- Typical student usage: $0.50-2.00/month
+
+Much cheaper than OpenAI while maintaining quality!
+
+## Technologies
 
 - React 18
+- DeepSeek AI
 - Tailwind CSS
-- Lucide React Icons
-- Claude AI API
+- react-markdown
+- react-pdf
+- jspdf
 
 ## License
 
