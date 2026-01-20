@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, AlertCircle } from 'lucide-react';
 
 const VoiceControls = ({ onVoiceInput, latestMessage, disabled }) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [recognition, setRecognition] = useState(null);
   const [isSupported, setIsSupported] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
   const utteranceRef = useRef(null);
 
   useEffect(() => {
@@ -13,10 +14,13 @@ const VoiceControls = ({ onVoiceInput, latestMessage, disabled }) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
-      console.warn('Speech recognition not supported in this browser');
+      console.warn('❌ Speech recognition not supported');
       setIsSupported(false);
+      setErrorMessage('Speech recognition not supported in this browser. Use Chrome, Edge, or Safari.');
       return;
     }
+
+    console.log('✅ Speech recognition supported');
 
     const recognitionInstance = new SpeechRecognition();
     recognitionInstance.continuous = false;
@@ -24,31 +28,38 @@ const VoiceControls = ({ onVoiceInput, latestMessage, disabled }) => {
     recognitionInstance.lang = 'en-US';
 
     recognitionInstance.onstart = () => {
-      console.log('Voice recognition started');
+      console.log('🎤 Voice recognition started');
       setIsListening(true);
+      setErrorMessage('');
     };
 
     recognitionInstance.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      console.log('Voice input received:', transcript);
+      console.log('✅ Voice input received:', transcript);
       onVoiceInput(transcript);
       setIsListening(false);
+      setErrorMessage('');
     };
 
     recognitionInstance.onerror = (event) => {
-      console.error('Voice recognition error:', event.error);
-      if (event.error === 'not-allowed') {
-        alert('Microphone access denied. Please allow microphone access in your browser settings.');
-      } else if (event.error === 'no-speech') {
-        alert('No speech detected. Please try again.');
-      } else {
-        alert(`Voice recognition error: ${event.error}`);
-      }
+      console.error('❌ Voice recognition error:', event.error);
       setIsListening(false);
+      
+      if (event.error === 'not-allowed') {
+        setErrorMessage('Microphone access denied. Click the lock icon in the address bar to allow access.');
+      } else if (event.error === 'no-speech') {
+        setErrorMessage('No speech detected. Please try again and speak clearly.');
+      } else if (event.error === 'network') {
+        setErrorMessage('Network error. Check your internet connection.');
+      } else if (event.error === 'aborted') {
+        setErrorMessage('Voice input cancelled.');
+      } else {
+        setErrorMessage(`Voice error: ${event.error}`);
+      }
     };
 
     recognitionInstance.onend = () => {
-      console.log('Voice recognition ended');
+      console.log('🎤 Voice recognition ended');
       setIsListening(false);
     };
 
@@ -57,7 +68,11 @@ const VoiceControls = ({ onVoiceInput, latestMessage, disabled }) => {
     // Cleanup
     return () => {
       if (recognitionInstance) {
-        recognitionInstance.stop();
+        try {
+          recognitionInstance.stop();
+        } catch (e) {
+          console.log('Cleanup: recognition already stopped');
+        }
       }
       if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -67,38 +82,46 @@ const VoiceControls = ({ onVoiceInput, latestMessage, disabled }) => {
 
   const toggleListening = () => {
     if (!isSupported) {
-      alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+      setErrorMessage('Speech recognition not supported. Use Chrome, Edge, or Safari.');
       return;
     }
 
     if (!recognition) {
-      alert('Voice recognition is not initialized yet. Please refresh the page.');
+      setErrorMessage('Voice recognition not initialized. Please refresh the page.');
       return;
     }
 
     if (isListening) {
-      recognition.stop();
+      try {
+        recognition.stop();
+        console.log('🛑 Stopping voice recognition...');
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+      }
       setIsListening(false);
     } else {
       try {
+        console.log('▶️ Starting voice recognition...');
         recognition.start();
-        console.log('Starting voice recognition...');
       } catch (error) {
-        console.error('Error starting recognition:', error);
-        alert('Could not start voice recognition. Please try again.');
-        setIsListening(false);
+        console.error('❌ Error starting recognition:', error);
+        if (error.message.includes('already started')) {
+          setErrorMessage('Already listening. Please speak now.');
+        } else {
+          setErrorMessage('Could not start voice recognition. Please try again.');
+        }
       }
     }
   };
 
   const speakMessage = () => {
     if (!latestMessage) {
-      alert('No message to read aloud');
+      setErrorMessage('No message to read aloud');
       return;
     }
 
     if (!window.speechSynthesis) {
-      alert('Text-to-speech is not supported in your browser');
+      setErrorMessage('Text-to-speech not supported in this browser');
       return;
     }
 
@@ -107,8 +130,11 @@ const VoiceControls = ({ onVoiceInput, latestMessage, disabled }) => {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
       utteranceRef.current = null;
+      console.log('🛑 Stopped speaking');
       return;
     }
+
+    console.log('🔊 Starting text-to-speech...');
 
     // Clean markdown formatting from message
     const cleanText = latestMessage
@@ -126,21 +152,22 @@ const VoiceControls = ({ onVoiceInput, latestMessage, disabled }) => {
     utterance.volume = 1;
 
     utterance.onstart = () => {
-      console.log('Started speaking');
+      console.log('🔊 Started speaking');
       setIsSpeaking(true);
+      setErrorMessage('');
     };
 
     utterance.onend = () => {
-      console.log('Finished speaking');
+      console.log('✅ Finished speaking');
       setIsSpeaking(false);
       utteranceRef.current = null;
     };
 
     utterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event);
+      console.error('❌ Speech synthesis error:', event);
       setIsSpeaking(false);
       utteranceRef.current = null;
-      alert('Error reading text aloud. Please try again.');
+      setErrorMessage('Error reading text aloud');
     };
 
     utteranceRef.current = utterance;
@@ -157,46 +184,69 @@ const VoiceControls = ({ onVoiceInput, latestMessage, disabled }) => {
   }, [isSpeaking]);
 
   return (
-    <div className="flex gap-2">
-      {/* Voice Input Button */}
-      <button
-        onClick={toggleListening}
-        disabled={disabled || !isSupported}
-        className={`p-2 rounded-lg transition-colors ${
-          isListening
-            ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
-            : 'bg-blue-600 text-white hover:bg-blue-700'
-        } disabled:bg-gray-300 disabled:cursor-not-allowed`}
-        title={
-          !isSupported 
-            ? 'Voice input not supported in this browser' 
-            : isListening 
-            ? 'Stop listening' 
-            : 'Start voice input'
-        }
-      >
-        {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-      </button>
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        {/* Voice Input Button */}
+        <button
+          onClick={toggleListening}
+          disabled={disabled || !isSupported}
+          className={`p-2 rounded-lg transition-colors relative ${
+            isListening
+              ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          } disabled:bg-gray-300 disabled:cursor-not-allowed`}
+          title={
+            !isSupported 
+              ? 'Voice input not supported' 
+              : isListening 
+              ? 'Click to stop listening' 
+              : 'Click and speak'
+          }
+        >
+          {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+        </button>
 
-      {/* Voice Output Button */}
-      <button
-        onClick={speakMessage}
-        disabled={!latestMessage}
-        className={`p-2 rounded-lg transition-colors ${
-          isSpeaking
-            ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
-            : 'bg-green-600 text-white hover:bg-green-700'
-        } disabled:bg-gray-300 disabled:cursor-not-allowed`}
-        title={
-          !latestMessage
-            ? 'No message to read'
-            : isSpeaking 
-            ? 'Stop speaking' 
-            : 'Read answer aloud'
-        }
-      >
-        {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-      </button>
+        {/* Voice Output Button */}
+        <button
+          onClick={speakMessage}
+          disabled={!latestMessage}
+          className={`p-2 rounded-lg transition-colors ${
+            isSpeaking
+              ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
+              : 'bg-green-600 text-white hover:bg-green-700'
+          } disabled:bg-gray-300 disabled:cursor-not-allowed`}
+          title={
+            !latestMessage
+              ? 'No message to read'
+              : isSpeaking 
+              ? 'Click to stop' 
+              : 'Read answer aloud'
+          }
+        >
+          {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="flex items-start gap-1 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-700 dark:text-red-300">
+          <AlertCircle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Status Indicator */}
+      {isListening && !errorMessage && (
+        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium animate-pulse">
+          🎤 Listening... Speak now!
+        </div>
+      )}
+      
+      {isSpeaking && !errorMessage && (
+        <div className="text-xs text-green-600 dark:text-green-400 font-medium animate-pulse">
+          🔊 Reading aloud...
+        </div>
+      )}
     </div>
   );
 };
